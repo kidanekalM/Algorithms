@@ -1,5 +1,10 @@
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from matplotlib.colors import ListedColormap
 
 df = pd.read_csv('C:/Users/PC/Desktop/New folder/slides/semester 10 - spring/cs488 AI/assing/Algorithms/Iris.csv')
 
@@ -33,8 +38,8 @@ def knn(training_set,training_class, new_record,k,distance_metrics):
             distances[i][1] =euclidean_distance(ts_array[i],new_record)
     sorted_distances = sorted(distances, key=lambda x: x[1])[:k]
 
-    Iris_setosa = 0
-    Iris_virginica = 0
+    Iris_setosa = 0    
+    Iris_virginica = 0 
     Iris_versicolor = 0
 
     for val in sorted_distances:
@@ -63,64 +68,12 @@ def knn(training_set,training_class, new_record,k,distance_metrics):
 # print(knn(X_train,y_train,X_train.iloc[X_train['Id'] == 50],5))
 #print(X_train.loc[49]) to see the id by train
 
-def calculate_accuracy(X_train, y_train, X_test, y_test, k,distance_metrics):
-    
-    correct_predictions = 0
-    total_predictions = len(X_test)
-    
-    for i, test_val in enumerate(X_test.iterrows()):
-        _, test_row = test_val
-        predicted_label = knn(X_train, y_train, test_row, k,distance_metrics)
-        if predicted_label == y_test.iloc[i]:
-            correct_predictions += 1
-    
-    accuracy = correct_predictions / total_predictions
-    return accuracy
 
-print(calculate_accuracy(X_train,y_train,X_test,y_test,1,"man"))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-import numpy as np
-
-def knn(X_train, y_train, test_row, k, distance_metric):
-    # Existing knn function implementation
-    pass
-
-def calculate_accuracy(X_train, y_train, X_test, y_test, k, distance_metric):
+def calculate_performance(X_train, y_train, X_test, y_test, k, distance_metric):
     correct_predictions = 0
     total_predictions = len(X_test)
     y_pred = []
-
+    y_test_array = y_test.to_numpy()
     for i, test_row in enumerate(X_test.iterrows()):
         _, test_row = test_row
         predicted_label = knn(X_train, y_train, test_row, k, distance_metric)
@@ -128,57 +81,58 @@ def calculate_accuracy(X_train, y_train, X_test, y_test, k, distance_metric):
         if predicted_label == y_test.iloc[i]:
             correct_predictions += 1
 
-    accuracy = correct_predictions / total_predictions
-    precision_score = precision(y_test, y_pred)
-    recall_score = recall(y_test, y_pred)
-    f1_score_value = f1_score(y_test, y_pred)
+    accuracy = accuracy_score(y_test_array, y_pred) #correct_predictions / total_predictions
+    precision = precision_score(y_test_array, y_pred,average='macro') #precision(y_test_array, y_pred)
+    recall = recall_score(y_test_array, y_pred,average='macro') #recall(y_test_array, y_pred)
+    f1_score_value = f1_score(y_test_array, y_pred,average='macro') #f1_score(y_test_array, y_pred)
 
-    return accuracy, precision_score, recall_score, f1_score_value
+    return [accuracy, precision, recall, f1_score_value]
 
-def precision(y_true, y_pred):
-    """
-    Calculates the precision of a classification model.
-    """
-    true_positives = 0
-    false_positives = 0
 
-    for i in range(len(y_true)):
-        if y_pred[i] == y_true[i] and y_pred[i] == 1:
-            true_positives += 1
-        elif y_pred[i] == 1 and y_true[i] == 0:
-            false_positives += 1
+""" def display_performance(X_train, y_train, X_test, y_test):
+    performance_metrics = ['K Value',"Distance Metrics","Accuracy","Precision","Recall","F1 Score"]
+    print(calculate_performance(X_train, y_train, X_test, y_test, 1, "man"))
+    for i in range (4):
+        performance_metrics.append([i,"Manhattan Distance"]+calculate_performance(X_train, y_train, X_test, y_test, i, "man"))
+        performance_metrics.append([i,"Euclidean Distance"]+calculate_performance(X_train, y_train, X_test, y_test, i, "euc"))
 
-    if true_positives + false_positives == 0:
-        return 0
-    else:
-        return true_positives / (true_positives + false_positives)
+    for record in performance_metrics:
+        print(record) """
+        
 
-def recall(y_true, y_pred):
-    """
-    Calculates the recall of a classification model.
-    """
-    true_positives = 0
-    false_negatives = 0
+def display_performance(X_train, y_train, X_test, y_test):
+    performance_metrics = pd.DataFrame(columns=['K Value', 'Distance Metrics', 'Accuracy', 'Precision', 'Recall', 'F1 Score'])
 
-    for i in range(len(y_true)):
-        if y_pred[i] == y_true[i] and y_pred[i] == 1:
-            true_positives += 1
-        elif y_pred[i] == 0 and y_true[i] == 1:
-            false_negatives += 1
+    for i in range(1,10):
+        performance_metrics.loc[len(performance_metrics)] = [i, "Manhattan Distance"] + calculate_performance(X_train, y_train, X_test, y_test, i, "man")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
 
-    if true_positives + false_negatives == 0:
-        return 0
-    else:
-        return true_positives / (true_positives + false_negatives)
+    print("Performance Metrics:")
+    print(performance_metrics)
 
-def f1_score(y_true, y_pred):
-    """
-    Calculates the F1 score of a classification model.
-    """
-    precision_score = precision(y_true, y_pred)
-    recall_score = recall(y_true, y_pred)
 
-    if precision_score + recall_score == 0:
-        return 0
-    else:
-        return 2 * (precision_score * recall_score) / (precision_score + recall_score)
+def plot_decision_boundaries(X_train,y_train,X, y, h=0.02):
+    y_pred = []
+    for record in X.to_numpy():
+        print(record)
+        y_pred.append(knn(X_train,y_train,record,5,"man"))
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+    
+    x_min, x_max = X.iloc[:, 0].min() - 1, X.iloc[:, 0].max() + 1
+    y_min, y_max = X.iloc[:, 1].min() - 1, X.iloc[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+    plt.figure()
+    
+    plt.contourf(xx, yy, y_pred, cmap=cmap_light)
+    # plt.pcolormesh(xx, yy, y_pred, cmap=cmap_light)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold, edgecolor='k', s=20)
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.title(f"3-Class classification (k = {clf.n_neighbors})")
+    plt.show()
+
+plot_decision_boundaries(X_train,y_train,X_test.iloc[:2],y_test)
+
+# display_performance(X_train,y_train,X_test,y_test)
