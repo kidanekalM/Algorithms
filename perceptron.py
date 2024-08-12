@@ -65,67 +65,28 @@ def calculate_performance(X_train, y_train, X_test, y_test):
     y_pred = []
     y_test_array = y_test.to_numpy()
 
-    weights1 = perceptron(X_train,y_train,"Iris-setosa","not")
-    weights2 = perceptron(X_train,y_train,"Iris-virginica","Iris-versicolor")
-    
+    Iris_setosa = "Iris-setosa"
+    Iris_virginica ="Iris-virginica"
+    Iris_versicolor = "Iris-versicolor"
+    weights1 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_versicolor,Iris_virginica)
+    for i in range(5):
+        weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
+
+    weights2 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_setosa,Iris_versicolor)
     for indx,record in enumerate(X_test.iterrows()):
         _,record = record
-        _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights1,"Iris-setosa","not")
-        if pred == "not":
-            _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights2,"Iris-virginica","Iris-versicolor")
-        # print(pred,y_test.iloc[indx],correct_predictions)
+        _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights1,Iris_versicolor,Iris_virginica)
+        if pred == Iris_versicolor:
+            _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights2,Iris_setosa,Iris_versicolor)
         if pred == y_test.iloc[indx]:
             correct_predictions += 1
-        y_pred.append(pred)
-        print(indx,pred,y_test.iloc[indx])
-
-
-    # for i, test_row in enumerate(X_test.iterrows()):
-    #     _, test_row = test_row
-    #     predicted_label = knn(X_train, y_train, test_row, k, distance_metric)
-    #     y_pred.append(predicted_label)
-    #     if predicted_label == y_test.iloc[i]:
-    #         correct_predictions += 1
+            y_pred.append(pred)
     
-    accuracy = accuracy_score(y_test_array, y_pred) #correct_predictions / total_predictions
-    precision = precision_score(y_test_array, y_pred,average='macro') #precision(y_test_array, y_pred)
-    recall = recall_score(y_test_array, y_pred,average='macro') #recall(y_test_array, y_pred)
-    f1_score_value = f1_score(y_test_array, y_pred,average='macro') #f1_score(y_test_array, y_pred)
+    accuracy = accuracy_score(y_test_array, y_pred) 
+    precision = precision_score(y_test_array, y_pred,average='macro') 
+    recall = recall_score(y_test_array, y_pred,average='macro') 
+    f1_score_value = f1_score(y_test_array, y_pred,average='macro') 
 
     return [accuracy, precision, recall, f1_score_value]
 
-Iris_setosa = "Iris-setosa"
-Iris_virginica ="Iris-virginica"
-Iris_versicolor = "Iris-versicolor"
-
-n = "not"
-weights1 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_versicolor,Iris_virginica)
-weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-
-weights2 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_setosa,Iris_versicolor)
-weights3 = perceptron(X_test,y_train,weights1,Iris_versicolor,Iris_virginica)
-count = 0
-print(weights1,weights2,weights3)
-for indx,record in enumerate(X_test.iterrows()):
-    _,record = record
-    _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights1,Iris_versicolor,Iris_virginica)
-    # print(indx,y_test.iloc[indx],pred)
-    if pred == Iris_versicolor:
-        _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights2,Iris_setosa,Iris_versicolor)
-        print(indx,y_test.iloc[indx],pred)
-    # if pred == Iris_versicolor:
-        # _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights3,Iris_versicolor,Iris_virginica)
-        # print(indx,y_test.iloc[indx],pred)
-    else:
-        print(indx,y_test.iloc[indx],pred)
-    if(pred == y_test.iloc[indx]):
-        count += 1
-
-print(count)
-     
-
-# print(calculate_performance(X_train,y_train,X_test,y_test))
+print(calculate_performance(X_train,y_train,X_test,y_test))
