@@ -5,6 +5,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, r
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
+from sklearn.preprocessing import LabelEncoder
 
 df = pd.read_csv('C:/Users/PC/Desktop/New folder/slides/semester 10 - spring/cs488 AI/assing/Algorithms/Iris.csv')
 
@@ -70,6 +71,8 @@ def get_pred(X_train, y_train, X_test, y_test):
             # print(pred,y_test.iloc[indx],indx)
             correct_predictions += 1
         y_pred.append(pred)
+    
+    # plot_decision_boundary(X_train, y_train, weights1, weights2, 'Final Decision Boundaries')
     return weights1,weights2,correct_predictions,total_predictions,y_pred
 def calculate_performance(correct_predictions,total_predictions,y_pred,y_test):
     
@@ -82,12 +85,13 @@ def calculate_performance(correct_predictions,total_predictions,y_pred,y_test):
 
     return [accuracy, precision, recall, f1_score_value]
 
-def plot_decision_boundary(weights1, weights2,X_train):
+def plot_decision_boundary0(weights1, weights2,X_train):
     x = X_train.to_numpy()
 
     # Calculate y values for each set of weights
     # y1 = relu(np.dot(weights1, np.ones(len(weights1))))
     # y2 = relu(np.dot(weights2, np.ones(len(weights2))))
+
     y1 = weights1[0]*1 + weights1[1]*x[0] + weights1[2]*x[1] + weights1[3]*x[2] + weights1[4]*x[3] 
     y2 = weights2[0]*1 + weights2[1]*x[0] + weights2[2]*x[1] + weights2[3]*x[2] + weights2[4]*x[3] 
     # Plot the results
@@ -97,11 +101,123 @@ def plot_decision_boundary(weights1, weights2,X_train):
     plt.ylabel('Activation')
     plt.title('Activation Function with Given Weights')
     plt.legend()
+    plt.show(block=False)
+
+def plot_decision_boundary11(X, y, weights1, weights2, title):
+    # Encode the string labels to numerical values
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
+
+    # Convert weights to NumPy arrays
+    weights1 = np.array(weights1)
+    weights2 = np.array(weights2)
+
+    x_min, x_max = X.to_numpy()[:, 0].min() - 1, X.to_numpy()[:, 0].max() + 1
+    y_min, y_max = X.to_numpy()[:, 1].min() - 1, X.to_numpy()[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01),
+                         np.arange(y_min, y_max, 0.01))
+
+    # Compute decision boundaries
+    Z1 = (weights1[0] + weights1[1] * xx + weights1[2] * yy)
+    Z2 = (weights2[0] + weights2[1] * xx + weights2[2] * yy)
+
+    # Predict labels based on decision boundaries
+    y_pred1 = np.where(Z1 >= 0, 1, 0)
+    y_pred2 = np.where(Z2 >= 0, 1, 0)
+
+    # Plot decision boundaries
+    plt.figure(11, figsize=(10, 8))
+    plt.contour(xx, yy, y_pred1, levels=[0], colors='blue', linewidths=2)
+    plt.contour(xx, yy, y_pred2, levels=[0], colors='green', linewidths=2)
+
+    # Plot actual data points
+    plt.scatter(X.to_numpy()[:, 0], X.to_numpy()[:, 1], c=y_encoded, edgecolors='k', marker='o')
+
+    # Plot weight vectors starting from (0, 8)
+    plt.quiver(0, 8, weights1[1], weights1[2], scale=1, color='blue', width=0.005)
+    plt.quiver(0, 8, weights2[1], weights2[2], scale=1, color='green', width=0.005)
+
+    plt.title(title)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.show(block=False)
+    plt.pause(100)
+
+
+def plot_decision_boundary1(X, y, weights1, weights2, title):
+    # Encode the string labels to numerical values
+    le = LabelEncoder()
+    y_encoded = le.fit_transform(y)
+
+    # Convert weights to NumPy arrays
+    weights1 = np.array(weights1)
+    weights2 = np.array(weights2)
+
+    x_min, x_max = X.to_numpy()[:, 0].min() - 1, X.to_numpy()[:, 0].max() + 1
+    y_min, y_max = X.to_numpy()[:, 1].min() - 1, X.to_numpy()[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01),
+                         np.arange(y_min, y_max, 0.01))
+
+    # Compute decision boundaries
+    Z1 = (weights1[0] + weights1[1] * xx + weights1[2] * yy + weights1[3] + weights1[4])
+    Z2 = (weights2[0] + weights2[1] * xx + weights2[2] * yy + weights2[3] + weights2[4])
+
+    # Predict labels based on decision boundaries
+    y_pred1 = np.where(Z1 >= 0, 1, 0)
+    y_pred2 = np.where(Z2 >= 0, 1, 0)
+
+    # Plot decision boundaries
+    plt.figure(1, figsize=(10, 8))
+    plt.contour(xx, yy, y_pred1, levels=[0], colors='blue', linewidths=2)
+    plt.contour(xx, yy, y_pred2, levels=[0], colors='green', linewidths=2)
+
+    # Plot actual data points
+    plt.scatter(X.to_numpy()[:, 0], X.to_numpy()[:, 1], c=y_encoded, edgecolors='k', marker='o')
+
+    # Plot weight lines starting from (0, 8)
+    x_vals = np.array([x_min, x_max])
+    y_vals1 = -(weights1[0] + weights1[1] * x_vals) / weights1[2] + 50
+    y_vals2 = -(weights2[0] + weights2[1] * x_vals) / weights2[2] + 45
+    plt.plot(x_vals, y_vals1, color='blue', linestyle='--', linewidth=2, label='Weights 1')
+    plt.plot(x_vals, y_vals2, color='green', linestyle='--', linewidth=2, label='Weights 2')
+
+    plt.title(title)
+    plt.xlabel('Sepal Length')
+    plt.ylabel('Sepal Width')
+    plt.legend()
+    plt.show()
+
+
+
+def plot_decision_boundary2(X, y, weights1, weights2, title):
+    # Convert weights to NumPy arrays
+    weights1 = np.array(weights1)
+    weights2 = np.array(weights2)
+
+    x_min, x_max = X.to_numpy()[:, 0].min() - 1, X.to_numpy()[:, 0].max() + 1
+    y_min, y_max = X.to_numpy()[:, 1].min() - 1, X.to_numpy()[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.01),
+                         np.arange(y_min, y_max, 0.01))
+
+    # Compute decision boundaries
+    Z1 = (weights1[0] + weights1[1] * xx + weights1[2] * yy) >= 0
+    Z2 = (weights2[0] + weights2[1] * xx + weights2[2] * yy) >= 0
+
+    # Plot decision boundaries
+    plt.contourf(xx, yy, Z1, alpha=0.3, cmap='coolwarm')
+    plt.contourf(xx, yy, Z2, alpha=0.3, cmap='coolwarm')
+
+    # Plot data points
+    plt.scatter(X.to_numpy()[:, 0], X.to_numpy()[:, 1], c=y, edgecolors='k', marker='o')
+    plt.title(title)
     plt.show()
 
 weights1,weights2,correct_predictions,total_predictions,y_pred = get_pred(X_train,y_train,X_test,y_test)
 print(weights1,weights2,correct_predictions,total_predictions,y_pred)
 a,p,r,f1 = calculate_performance(correct_predictions,total_predictions,y_pred,y_test)
 print("Accuracy =",a,"\nPrecision = ",p,"\nRecall = ",r,"\nF1 score = ",f1)
+# plot_decision_boundary(X_train,y_train,weights1, weights2, 'Initial Decision Boundaries')
 # plot_decision_boundary([weights1,weights2],X_test.to_numpy(),y_test.to_numpy(),y_pred)
-plot_decision_boundary(weights1, weights2,X_train)
+# plot_decision_boundary(X,y,weights1, weights2,)
+# plot_decision_boundary11(X_train,y_train,weights1, weights2,"So Help me God I'm Dead")
+plot_decision_boundary1(X_train,y_train,weights1, weights2,"So Help me God I'm Dead")
