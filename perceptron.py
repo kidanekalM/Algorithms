@@ -31,7 +31,6 @@ def update_weights(weights,bias,inputs,exp,pred):
     return weights
 
 def perceptron(X_train,y_train,weights,class0,class1):
-    # weights = [0,0,0,0,0]
     CLASS_0 = 0
     CLASS_1 = 1
     for indx, record in enumerate(X_train.iterrows()):
@@ -55,17 +54,20 @@ def get_pred(X_train, y_train, X_test, y_test):
     Iris_setosa = "Iris-setosa"
     Iris_virginica ="Iris-virginica"
     Iris_versicolor = "Iris-versicolor"
+    Epoch = 5
     weights1 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_versicolor,Iris_virginica)
-    for i in range(5):
+    for i in range(Epoch):
         weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
 
     weights2 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_setosa,Iris_versicolor)
     for indx,record in enumerate(X_test.iterrows()):
         _,record = record
         _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights1,Iris_versicolor,Iris_virginica)
+        # print(pred,y_test.iloc[indx],indx)
         if pred == Iris_versicolor:
             _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights2,Iris_setosa,Iris_versicolor)
         if pred == y_test.iloc[indx]:
+            # print(pred,y_test.iloc[indx],indx)
             correct_predictions += 1
         y_pred.append(pred)
     return weights1,weights2,correct_predictions,total_predictions,y_pred
@@ -80,10 +82,26 @@ def calculate_performance(correct_predictions,total_predictions,y_pred,y_test):
 
     return [accuracy, precision, recall, f1_score_value]
 
-def plot_decision_boundary(weights,X_test,y_test,y_pred):
-    pass
+def plot_decision_boundary(weights1, weights2,X_train):
+    x = X_train.to_numpy()
+
+    # Calculate y values for each set of weights
+    # y1 = relu(np.dot(weights1, np.ones(len(weights1))))
+    # y2 = relu(np.dot(weights2, np.ones(len(weights2))))
+    y1 = weights1[0]*1 + weights1[1]*x[0] + weights1[2]*x[1] + weights1[3]*x[2] + weights1[4]*x[3] 
+    y2 = weights2[0]*1 + weights2[1]*x[0] + weights2[2]*x[1] + weights2[3]*x[2] + weights2[4]*x[3] 
+    # Plot the results
+    plt.plot(x, y1 * np.ones_like(x), label='Weights1')
+    plt.plot(x, y2 * np.ones_like(x), label='Weights2')
+    plt.xlabel('Input')
+    plt.ylabel('Activation')
+    plt.title('Activation Function with Given Weights')
+    plt.legend()
+    plt.show()
 
 weights1,weights2,correct_predictions,total_predictions,y_pred = get_pred(X_train,y_train,X_test,y_test)
+print(weights1,weights2,correct_predictions,total_predictions,y_pred)
 a,p,r,f1 = calculate_performance(correct_predictions,total_predictions,y_pred,y_test)
 print("Accuracy =",a,"\nPrecision = ",p,"\nRecall = ",r,"\nF1 score = ",f1)
 # plot_decision_boundary([weights1,weights2],X_test.to_numpy(),y_test.to_numpy(),y_pred)
+plot_decision_boundary(weights1, weights2,X_train)
