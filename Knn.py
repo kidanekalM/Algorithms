@@ -133,6 +133,6 @@ def plot_decision_boundaries(X_train,y_train,X, y, h=0.02):
     plt.title(f"3-Class classification (k = {clf.n_neighbors})")
     plt.show()
 
-plot_decision_boundaries(X_train,y_train,X_test.iloc[:2],y_test)
+# plot_decision_boundaries(X_train,y_train,X_test.iloc[:2],y_test)
 
-# display_performance(X_train,y_train,X_test,y_test)
+display_performance(X_train,y_train,X_test,y_test)
