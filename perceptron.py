@@ -55,12 +55,17 @@ def get_pred(X_train, y_train, X_test, y_test):
     Iris_setosa = "Iris-setosa"
     Iris_virginica ="Iris-virginica"
     Iris_versicolor = "Iris-versicolor"
+    weights_history1 = []
+    weights_history2 = []
     Epoch = 5
+    weights_history1.append( [0,0,0,0,0])
     weights1 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_versicolor,Iris_virginica)
     for i in range(Epoch):
+        weights_history1.append( weights1)
         weights1 = perceptron(X_train,y_train,weights1,Iris_versicolor,Iris_virginica)
-
+    weights_history2.append( [0,0,0,0,0])
     weights2 = perceptron(X_train,y_train,[0,0,0,0,0],Iris_setosa,Iris_versicolor)
+    weights_history2.append( weights2)
     for indx,record in enumerate(X_test.iterrows()):
         _,record = record
         _,pred = activation_function(1,X_test.iloc[indx].to_numpy()[1:],weights1,Iris_versicolor,Iris_virginica)
@@ -73,7 +78,7 @@ def get_pred(X_train, y_train, X_test, y_test):
         y_pred.append(pred)
     
     # plot_decision_boundary(X_train, y_train, weights1, weights2, 'Final Decision Boundaries')
-    return weights1,weights2,correct_predictions,total_predictions,y_pred
+    return weights1,weights2,weights_history1,weights_history2,correct_predictions,total_predictions,y_pred
 def calculate_performance(correct_predictions,total_predictions,y_pred,y_test):
     
     y_test_array = y_test.to_numpy()
@@ -189,6 +194,53 @@ def plot_decision_boundary1(X, y, weights1, weights2, title):
 
 
 
+
+
+def plot_perceptron_convergence(weights_history1, weights_history2):
+    """
+    Generates a convergence diagram for the perceptron algorithm.
+
+    Args:
+        weights_history1 (list): A list of weight vectors for the Iris-versicolor vs Iris-virginica classification.
+        weights_history2 (list): A list of weight vectors for the Iris-setosa vs Iris-versicolor classification.
+
+    Returns:
+        None
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot convergence for Iris-versicolor vs Iris-virginica
+    ax1.plot(np.array(weights_history1)[:, 0], label='W0')
+    ax1.plot(np.array(weights_history1)[:, 1], label='W1')
+    ax1.plot(np.array(weights_history1)[:, 2], label='W2')
+    ax1.plot(np.array(weights_history1)[:, 3], label='W3')
+    ax1.plot(np.array(weights_history1)[:, 4], label='Bias')
+    ax1.set_title('Convergence for Iris-versicolor vs Iris-virginica')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Weight Value')
+    ax1.legend()
+
+    # Plot convergence for Iris-setosa vs Iris-versicolor
+    ax2.plot(np.array(weights_history2)[:, 0], label='W0')
+    ax2.plot(np.array(weights_history2)[:, 1], label='W1')
+    ax2.plot(np.array(weights_history2)[:, 2], label='W2')
+    ax2.plot(np.array(weights_history2)[:, 3], label='W3')
+    ax2.plot(np.array(weights_history2)[:, 4], label='Bias')
+    ax2.set_title('Convergence for Iris-setosa vs Iris-versicolor')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Weight Value')
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+# Example usage:
+# weights1, weights2, weights_history1, weights_history2, correct_predictions, total_predictions, y_pred = get_pred(X_train, y_train, X_test, y_test)
+# plot_convergence(weights_history1, weights_history2)
+
+
+
+
 def plot_decision_boundary2(X, y, weights1, weights2, title):
     # Convert weights to NumPy arrays
     weights1 = np.array(weights1)
@@ -212,7 +264,7 @@ def plot_decision_boundary2(X, y, weights1, weights2, title):
     plt.title(title)
     plt.show()
 
-weights1,weights2,correct_predictions,total_predictions,y_pred = get_pred(X_train,y_train,X_test,y_test)
+weights1,weights2,weights_history1,weights_history2,correct_predictions,total_predictions,y_pred = get_pred(X_train,y_train,X_test,y_test)
 print(weights1,weights2,correct_predictions,total_predictions,y_pred)
 a,p,r,f1 = calculate_performance(correct_predictions,total_predictions,y_pred,y_test)
 print("Accuracy =",a,"\nPrecision = ",p,"\nRecall = ",r,"\nF1 score = ",f1)
@@ -221,3 +273,5 @@ print("Accuracy =",a,"\nPrecision = ",p,"\nRecall = ",r,"\nF1 score = ",f1)
 # plot_decision_boundary(X,y,weights1, weights2,)
 # plot_decision_boundary11(X_train,y_train,weights1, weights2,"So Help me God I'm Dead")
 plot_decision_boundary1(X_train,y_train,weights1, weights2,"So Help me God I'm Dead")
+# plot_perceptron_convergence(X_train,y_train,weights_history1,weights_history2)
+plot_perceptron_convergence(weights_history1,weights_history2)
