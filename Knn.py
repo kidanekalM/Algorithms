@@ -109,10 +109,10 @@ def display_performance(X_train, y_train, X_test, y_test):
     performance_metrics = pd.DataFrame(columns=['K Value', 'Distance Metrics', 'Accuracy %', 'Precision %', 'Recall', 'F1 Score'])
 
     for i in range(1,10):
-        a, p, r,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "man")
-        performance_metrics.loc[len(performance_metrics)] = [i, "Manhattan Distance"] + [(a*100),(p*100),r,f1]
-        a, p, r,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
-        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + [(a*100),(p*100),r,f1]
+        accuracy, precision, recall,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "man")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Manhattan Distance"] + [(accuracy*100),(precision*100),recall,f1]
+        accuracy, precision, recall,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + [(accuracy*100),(precision*100),recall,f1]
 
     print("Performance Metrics:")
     print(performance_metrics)
@@ -142,43 +142,124 @@ def plot_decision_boundaries00000(X_train,y_train,X, y, h=0.02):
     
 
 
-import pandas as pd
+def decision_boundary(X_train, y_train, k, distance_metric):
+    """
+    Generates the decision boundary for a k-nearest neighbors classifier.
 
-def plot_decision_boundaries(X, y, k, distance_metric, resolution=0.02):
+    Args:
+        X_train (pandas.DataFrame): The training feature data.
+        y_train (pandas.Series): The training target data.
+        k (int): The number of nearest neighbors to consider.
+        distance_metric (str): The distance metric to use, either "man" for Manhattan distance or "euc" for Euclidean distance.
+
+    Returns:
+        None
+    """
+    # Create a meshgrid of points to evaluate the decision boundary
+    x_min, x_max = X_train.iloc[:, 0].min() - 1, X_train.iloc[:, 0].max() + 1
+    y_min, y_max = X_train.iloc[:, 1].min() - 1, X_train.iloc[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                         np.arange(y_min, y_max, 0.1))
+
+    # Predict the class for each point in the meshgrid
+    Z = np.array([knn(X_train, y_train, np.array([x, y]), k, distance_metric) for x, y in zip(xx.ravel(), yy.ravel())])
+    Z = Z.reshape(xx.shape)
+
+    # Plot the decision boundary
+    cmap = ListedColormap(['r', 'g', 'b'])
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, Z, alpha=0.4, cmap=cmap)
+    plt.scatter(X_train.iloc[:, 0], X_train.iloc[:, 1], c=y_train, cmap=cmap, edgecolors='k')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.title(f'Decision Boundary (k={k}, distance metric={distance_metric})')
+    plt.show()
+
+def plot_performance_metrics(X_train, y_train, X_test, y_test):
+    performance_metrics = pd.DataFrame(columns=['K Value', 'Distance Metrics', 'Accuracy %', 'Precision %', 'Recall', 'F1 Score'])
+
+    for i in range(1, 10):
+        accuracy, precision, recall, f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "man")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Manhattan Distance"] + [(accuracy*100), (precision*100), recall, f1]
+        accuracy, precision, recall, f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + [(accuracy*100), (precision*100), recall, f1]
+
+    # Plot Accuracy, Precision, Recall, and F1-Score
+    fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+
+    # Accuracy
+    axes[0, 0].plot(performance_metrics['K Value'], performance_metrics['Accuracy %'], marker='o', label='Manhattan Distance')
+    axes[0, 0].plot(performance_metrics['K Value'], performance_metrics['Accuracy %'], marker='x', label='Euclidean Distance')
+    axes[0, 0].set_title('Accuracy vs K-Value')
+    axes[0, 0].set_xlabel('K-Value')
+    axes[0, 0].set_ylabel('Accuracy (%)')
+    axes[0, 0].legend()
+
+    # Precision
+    axes[0, 1].plot(performance_metrics['K Value'], performance_metrics['Precision %'], marker='o', label='Manhattan Distance')
+    axes[0, 1].plot(performance_metrics['K Value'], performance_metrics['Precision %'], marker='x', label='Euclidean Distance')
+    axes[0, 1].set_title('Precision vs K-Value')
+    axes[0, 1].set_xlabel('K-Value')
+    axes[0, 1].set_ylabel('Precision (%)')
+    axes[0, 1].legend()
+
+    # Recall
+    axes[1, 0].plot(performance_metrics['K Value'], performance_metrics['Recall'], marker='o', label='Manhattan Distance')
+    axes[1, 0].plot(performance_metrics['K Value'], performance_metrics['Recall'], marker='x', label='Euclidean Distance')
+    axes[1, 0].set_title('Recall vs K-Value')
+    axes[1, 0].set_xlabel('K-Value')
+    axes[1, 0].set_ylabel('Recall')
+    axes[1, 0].legend()
+
+    # F1-Score
+    axes[1, 1].plot(performance_metrics['K Value'], performance_metrics['F1 Score'], marker='o', label='Manhattan Distance')
+    axes[1, 1].plot(performance_metrics['K Value'], performance_metrics['F1 Score'], marker='x', label='Euclidean Distance')
+    axes[1, 1].set_title('F1-Score vs K-Value')
+    axes[1, 1].set_xlabel('K-Value')
+    axes[1, 1].set_ylabel('F1-Score')
+    axes[1, 1].legend()
+
+    plt.tight_layout()
+    plt.show()
+
+    return performance_metrics
+
+def plot_decision_boundaries(X, y, ks):
+    h = .02  # Step size in the mesh
     cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
     cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
 
-    # Convert y to a pandas Series
-    y_series = pd.Series(y)
+    # Create color maps
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
 
-    # Plot the decision boundary by assigning a color to each point in the mesh
-    h = .02  # Step size in the mesh
-    x_min, x_max = X.to_numpy()[:, 0].min() - 1, X.to_numpy()[:, 0].max() + 1
-    y_min, y_max = X.to_numpy()[:, 1].min() - 1, X.to_numpy()[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                        np.arange(y_min, y_max, h))
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8), tight_layout=True)
+    axs = axs.ravel()
 
-    # Predict the class for each point in the mesh
-    Z = np.array([knn(X, y_series, np.array([x, y]), k, distance_metric) for x, y in zip(xx.ravel(), yy.ravel())])
-    Z = np.where(Z == "Iris-setosa", 0, np.where(Z == "Iris-versicolor", 1, 2))
-    Z = Z.reshape(xx.shape)
+    for i, k in enumerate(ks):
+        # Plot the decision boundary
+        clf = KNeighborsClassifier(n_neighbors=k)
+        clf.fit(X, y)
+        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
 
-    # Put the result into a color plot
-    plt.figure()
-    plt.pcolormesh(xx, yy, Z, cmap=cmap_light)
+        axs[i].pcolormesh(xx, yy, Z, cmap=cmap_light)
+        axs[i].scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold, edgecolor='k', s=20)
+        axs[i].set_xlim(xx.min(), xx.max())
+        axs[i].set_ylim(yy.min(), yy.max())
+        axs[i].set_title(f"3-Class classification (k = {k})")
 
-    # Plot also the training points
-    plt.scatter(X[:, 0], X[:, 1], c=y_series, cmap=cmap_bold, edgecolor='k', s=20)
-    plt.xlim(xx.min(), xx.max())
-    plt.ylim(yy.min(), yy.max())
-    plt.title(f"3-Class classification (k = {k}, distance = '{distance_metric}')")
-
-    plt.xlabel('Sepal length')
-    plt.ylabel('Sepal width')
     plt.show()
 
+# Visualize decision boundaries for different k values
+# plot_decision_boundaries(X_train, y_train, [1, 5, 10, 20])
+
+plot_decision_boundaries00000(X_train,y_train,X_test.iloc[:2],y_test)
+
+# plot_decision_boundaries(X_train[:2],y_train,5,"man")
+# decision_boundary(X_train,y_train,5,"man")
 
 
-# plot_decision_boundaries(X_train,y_train,X_test.iloc[:2],y_test)
-plot_decision_boundaries(X_train[:2],y_train,5,"man")
 # display_performance(X_train,y_train,X_test,y_test)
+# plot_performance_metrics(X_train,y_train,X_test,y_test)
