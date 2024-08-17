@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
 from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
 
 df = pd.read_csv('C:/Users/PC/Desktop/New folder/slides/semester 10 - spring/cs488 AI/assing/Algorithms/Iris.csv')
 
@@ -14,6 +15,9 @@ y = df['Species']
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=40)
+
+# Assuming X is your feature matrix
+
 def activation_function(bias,inputs,weights,class0,class1):
     prediction = bias * weights[0]
     for i in range(len(weights)-1):
