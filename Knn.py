@@ -1,12 +1,17 @@
 import pandas as pd
 import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
 
-from plotDecision import plot_decision_boundaries
+
+
+# from plotDecision import plot_decision_boundaries
 
 df = pd.read_csv('C:/Users/PC/Desktop/New folder/slides/semester 10 - spring/cs488 AI/assing/Algorithms/Iris.csv')
 
@@ -234,7 +239,111 @@ def plot_performance_metrics(X_train, y_train, X_test, y_test):
 # plot_decision_boundaries(X_train[:2],y_train,5,"man")
 # decision_boundary(X_train,y_train,5,"man")
 
+def plot_decision_boundaries(metric):
+    iris = load_iris()
+    X = iris.data[:, :2]  # We only take the first two features for visualization
+    y = iris.target
 
+    # Split the dataset into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+    # Standardize the features
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+    h = .02  # Step size in the mesh
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
+    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
+
+    # Create color maps
+    x_min, x_max = X_train[:, 0].min() - 1, X_train[:, 0].max() + 1
+    y_min, y_max = X_train[:, 1].min() - 1, X_train[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8), tight_layout=True)
+    axs = axs.ravel()
+
+    for i, k in enumerate([1, 5, 10, 20]):
+        # Plot the decision boundary
+        clf = KNeighborsClassifier(n_neighbors=k,metric=metric)
+        clf.fit(X_train, y_train)
+        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
+
+        axs[i].pcolormesh(xx, yy, Z, cmap=cmap_light)
+        axs[i].scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cmap_bold, edgecolor='k', s=20)
+        axs[i].set_xlim(xx.min(), xx.max())
+        axs[i].set_ylim(yy.min(), yy.max())
+        axs[i].set_title(f"3-Class classification (k = {k})")
+
+        # Calculate and display performance metrics
+        y_pred = clf.predict(X_test)
+        accuracy = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        precision = precision_score(y_test, y_pred, average='weighted')
+        recall = recall_score(y_test, y_pred, average='weighted')
+        # axs[i].text(0.05, 0.95, f"Accuracy: {accuracy:.2f}\nF1: {f1:.2f}\nPrecision: {precision:.2f}\nRecall: {recall:.2f}", 
+        #             transform=axs[i].transAxes, va='top', fontsize=8)
+
+    plt.show()
+
+def plot_knn_metrics():
+    # Load the Iris dataset
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    
+    # Split the dataset into training and testing sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+    
+    # Initialize lists to store metric values
+    k_values = range(1, 11)  # Reduced k values
+    metrics = ['accuracy', 'f1', 'recall', 'precision']
+    distances = ['manhattan', 'euclidean']
+
+    # Iterate over distance metrics
+    results = {metric: {distance: [] for distance in distances} for metric in metrics}
+    
+    for distance in distances:
+        for k in k_values:
+            # Initialize and train the KNN classifier
+            knn = KNeighborsClassifier(n_neighbors=k, metric=distance)
+            knn.fit(X_train, y_train)
+            
+            # Make predictions on the test set
+            y_pred = knn.predict(X_test)
+            
+            # Compute and store metrics
+            results['accuracy'][distance].append(accuracy_score(y_test, y_pred))
+            results['f1'][distance].append(f1_score(y_test, y_pred, average='weighted'))
+            results['recall'][distance].append(recall_score(y_test, y_pred, average='weighted'))
+            results['precision'][distance].append(precision_score(y_test, y_pred, average='weighted'))
+
+    # Plotting the results
+    fig, axs = plt.subplots(2, 2, figsize=(14, 12))
+    fig.suptitle('K-NN Metrics vs K Values for Manhattan and Euclidean Distances', fontsize=16)
+
+    for i, metric in enumerate(metrics):
+        ax = axs[i//2, i%2]
+        ax.plot(k_values, results[metric]['manhattan'], marker='o', label='Manhattan', color='blue')
+        ax.plot(k_values, results[metric]['euclidean'], marker='o', label='Euclidean', color='red')
+        ax.set_title(f'{metric.capitalize()} vs K')
+        ax.set_xlabel('K value')
+        ax.set_ylabel(metric.capitalize())
+        ax.grid(True)
+        ax.legend()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+
+# Call the function to plot
+
+
+plot_knn_metrics()
 plot_performance_metrics(X_train,y_train,X_test,y_test)
-display_performance(X_train,y_train,X_test,y_test)
-# plot_decision_boundaries(X_train, y_train, X_test, y_test, [1, 5, 10, 20])
+# display_performance(X_train,y_train,X_test,y_test)
+# plot_decision_boundaries( "manhattan")
+# plot_decision_boundaries( "euclidean")
