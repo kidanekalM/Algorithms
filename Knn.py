@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from matplotlib.colors import ListedColormap
 
+from plotDecision import plot_decision_boundaries
+
 df = pd.read_csv('C:/Users/PC/Desktop/New folder/slides/semester 10 - spring/cs488 AI/assing/Algorithms/Iris.csv')
 
 X = df.drop('Species', axis=1)  
@@ -111,8 +113,8 @@ def display_performance(X_train, y_train, X_test, y_test):
     for i in range(1,10):
         accuracy, precision, recall,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "man")
         performance_metrics.loc[len(performance_metrics)] = [i, "Manhattan Distance"] + [(accuracy*100),(precision*100),recall,f1]
-        accuracy, precision, recall,f1 = calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
-        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + [(accuracy*100),(precision*100),recall,f1]
+        accuracy1, precision1, recall1,f11 = calculate_performance(X_train, y_train, X_test, y_test, i, "euc")
+        performance_metrics.loc[len(performance_metrics)] = [i, "Euclidean Distance"] + [(accuracy1*100),(precision1*100),recall1,f11]
 
     print("Performance Metrics:")
     print(performance_metrics)
@@ -224,42 +226,15 @@ def plot_performance_metrics(X_train, y_train, X_test, y_test):
 
     return performance_metrics
 
-def plot_decision_boundaries(X, y, ks):
-    h = .02  # Step size in the mesh
-    cmap_light = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
-    cmap_bold = ListedColormap(['#FF0000', '#00FF00', '#0000FF'])
-
-    # Create color maps
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8), tight_layout=True)
-    axs = axs.ravel()
-
-    for i, k in enumerate(ks):
-        # Plot the decision boundary
-        clf = KNeighborsClassifier(n_neighbors=k)
-        clf.fit(X, y)
-        Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-        Z = Z.reshape(xx.shape)
-
-        axs[i].pcolormesh(xx, yy, Z, cmap=cmap_light)
-        axs[i].scatter(X[:, 0], X[:, 1], c=y, cmap=cmap_bold, edgecolor='k', s=20)
-        axs[i].set_xlim(xx.min(), xx.max())
-        axs[i].set_ylim(yy.min(), yy.max())
-        axs[i].set_title(f"3-Class classification (k = {k})")
-
-    plt.show()
 
 # Visualize decision boundaries for different k values
-# plot_decision_boundaries(X_train, y_train, [1, 5, 10, 20])
 
-plot_decision_boundaries00000(X_train,y_train,X_test.iloc[:2],y_test)
+# plot_decision_boundaries00000(X_train,y_train,X_test.iloc[:2],y_test)
 
 # plot_decision_boundaries(X_train[:2],y_train,5,"man")
 # decision_boundary(X_train,y_train,5,"man")
 
 
-# display_performance(X_train,y_train,X_test,y_test)
-# plot_performance_metrics(X_train,y_train,X_test,y_test)
+plot_performance_metrics(X_train,y_train,X_test,y_test)
+display_performance(X_train,y_train,X_test,y_test)
+# plot_decision_boundaries(X_train, y_train, X_test, y_test, [1, 5, 10, 20])
